@@ -54,3 +54,17 @@ A primeira instalação pode exigir internet para baixar Node.js.
 - O endpoint local aplica CORS aos domínios Smart EZ e localhost.
 - Não exponha a porta 32177 para a rede.
 - O serviço não deve ser usado como serviço multiusuário/rede nesta versão.
+
+
+## Correção do inicializador VBS (0.2.2)
+
+Esta revisão corrige o erro de sintaxe do Windows Script Host ao abrir
+`start-service.vbs`. O script agora monta os argumentos com `Chr(34)` e
+verifica os caminhos padrão do Node.js em Program Files e Program Files (x86).
+
+Para gerar um instalador corrigido:
+1. Substitua os arquivos do repositório pelos arquivos desta revisão (ou atualize
+   `start-service.vbs`).
+2. Faça Commit changes na branch main.
+3. Abra Actions e aguarde o workflow Build SEZ Print Service installer.
+4. Baixe o novo artefato e instale por cima ou desinstale a versão anterior antes.
