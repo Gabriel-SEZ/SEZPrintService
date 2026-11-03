@@ -6,7 +6,7 @@ AppPublisher=Smart EZ
 DefaultDirName={autopf}\SEZ Print Service
 DefaultGroupName=SEZ Print Service
 OutputDir=dist
-OutputBaseFilename=SEZ-Print-Service-Setup
+OutputBaseFilename=SEZ-Print-Service-Setup-0.4.5
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=admin
@@ -20,6 +20,7 @@ Source: "print-engine.js"; DestDir: "{app}"; Flags: ignoreversion
 Source: "package.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "install-service.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "uninstall-service.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "prepare-update.ps1"; Flags: dontcopy
 Source: "service-host\SEZPrintServiceHost.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "runtime\*"; DestDir: "{app}\runtime"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "tools\*"; DestDir: "{app}\tools"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -51,6 +52,33 @@ begin
     RaiseException(FriendlyName + ' falhou. Código de saída: ' +
       IntToStr(ResultCode) + '. Consulte o log: ' +
       ExpandConstant('{commonappdata}\\SmartEZ\\SEZ Print Service\\logs\\service-install.log') + '.');
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+  PowerShellPath: string;
+  Parameters: string;
+begin
+  Result := '';
+  ExtractTemporaryFile('prepare-update.ps1');
+  PowerShellPath := ExpandConstant('{sys}\\WindowsPowerShell\\v1.0\\powershell.exe');
+  Parameters := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+    ExpandConstant('{tmp}\\prepare-update.ps1') + '"';
+
+  if not Exec(PowerShellPath, Parameters, ExpandConstant('{tmp}'),
+    SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    Result := 'Não foi possível parar a versão anterior do SEZ Print Service antes da atualização.';
+    Exit;
+  end;
+
+  if ResultCode <> 0 then
+  begin
+    Result := 'Não foi possível liberar SEZPrintServiceHost.exe. Consulte o log: ' +
+      ExpandConstant('{commonappdata}\\SmartEZ\\SEZ Print Service\\logs\\upgrade-stop.log') + '.';
+    Exit;
+  end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
