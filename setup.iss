@@ -51,7 +51,8 @@ begin
 
   if ResultCode <> 0 then
     RaiseException(FriendlyName + ' falhou. Código de saída: ' +
-      IntToStr(ResultCode) + '. Consulte o log: {commonappdata}\\SmartEZ\\SEZ Print Service\\logs\\installer-components.log.');
+      IntToStr(ResultCode) + '. Consulte o log: ' +
+      ExpandConstant('{commonappdata}\\SmartEZ\\SEZ Print Service\\logs\\installer-components.log') + '.');
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
