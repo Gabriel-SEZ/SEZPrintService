@@ -3,7 +3,7 @@ const http=require('http'), os=require('os'), crypto=require('crypto'), {execFil
 const printEngine=require('./print-engine');
 const PORT=32177, HOST='127.0.0.1';
 const token=crypto.randomBytes(24).toString('hex');
-const version='0.4.3';
+const version='0.4.4';
 const ALLOWED_ORIGINS=new Set(['https://smartez.com.br','https://www.smartez.com.br','http://localhost','http://127.0.0.1']);
 function send(req,res,status,data){const origin=req.headers.origin||'';const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Vary':'Origin'};if(ALLOWED_ORIGINS.has(origin)){headers['Access-Control-Allow-Origin']=origin;headers['Access-Control-Allow-Headers']='Content-Type, X-SEZ-Print-Token';headers['Access-Control-Allow-Methods']='GET, POST, OPTIONS';headers['Access-Control-Allow-Private-Network']='true';}const b=Buffer.from(JSON.stringify(data));headers['Content-Length']=b.length;res.writeHead(status,headers);res.end(b);}
 function ps(script){return new Promise((resolve,reject)=>execFile('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-Command',script],{windowsHide:true,timeout:15000,maxBuffer:2*1024*1024},(e,stdout,stderr)=>e?reject(new Error((stderr||e.message).trim())):resolve(stdout.trim())));}
