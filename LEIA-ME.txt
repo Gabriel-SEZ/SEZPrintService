@@ -1,5 +1,14 @@
-SEZ PRINT SERVICE 0.4.0 — IMPRESSÃO AUTOMÁTICA A4 E 80mm
+SEZ PRINT SERVICE 0.4.3 — IMPRESSÃO AUTOMÁTICA A4 E 80mm
 =========================================================
+
+CORREÇÃO DA INSTALAÇÃO
+- O instalador agora EMBUTE os componentes de execução no próprio EXE.
+- Node.js 22.23.3 x64 é baixado e validado no pipeline de compilação; instalado em {app}\runtime\node.exe.
+- SumatraPDF 3.6.1 x64 portátil é baixado e validado no pipeline; instalado em {app}\tools\SumatraPDF.exe.
+- O instalador não baixa, instala, atualiza nem depende de Node.js global no computador.
+- A instalação não precisa acessar a internet para obter Node.js ou SumatraPDF.
+- O serviço Windows prioriza o Node.js que acompanha o instalador.
+- Os hashes SHA-256 dos pacotes oficiais são conferidos antes de compilar o instalador.
 
 SISTEMA
 - Compatibilidade alvo: Windows 10 e Windows 11, 64 bits.
@@ -7,7 +16,8 @@ SISTEMA
 - Inicialização automática pelo Windows, sem depender de login.
 - Processo Node.js em segundo plano, supervisionado pelo host nativo C#.
 - Reinício automático em caso de encerramento inesperado.
-- Logs em %ProgramData%\SmartEZ\SEZ Print Service\logs.
+- Log de instalação do serviço em %ProgramData%\SmartEZ\SEZ Print Service\logs\service-install.log.
+- Logs de execução em %ProgramData%\SmartEZ\SEZ Print Service\logs.
 - Desinstalador remove o serviço Windows.
 
 IMPRESSÃO
@@ -30,7 +40,7 @@ SEGURANÇA
 
 INSTALAÇÃO
 1. Execute SEZ-Print-Service-Setup.exe como administrador.
-2. O instalador prepara Node.js 22 LTS e baixa o SumatraPDF portátil diretamente dos sites oficiais.
+2. O instalador copia os runtimes Node.js e SumatraPDF já incluídos no EXE.
 3. O serviço SEZ Print Service é registrado e iniciado automaticamente.
 4. No Smart EZ ERP, abra Configurações > SEZ Print Service.
 5. Conecte, atualize as impressoras e salve a impressora A4 e a impressora 80mm.
@@ -38,12 +48,15 @@ INSTALAÇÃO
 7. Use os botões de teste A4 e 80mm antes de iniciar os atendimentos.
 
 REQUISITOS IMPORTANTES
-- Primeira instalação requer conexão à internet para baixar Node.js e SumatraPDF.
-- O computador precisa ter Microsoft Edge ou Google Chrome instalado em nível de máquina.
+- O computador precisa ter Microsoft Edge ou Google Chrome instalado em nível de máquina para renderização.
 - Como o serviço roda como LocalSystem antes do login, filas e drivers precisam estar instalados para o computador/todos os usuários. Impressoras adicionadas somente ao perfil pessoal podem não aparecer.
 - Instale drivers oficiais da impressora e confirme o tamanho de papel A4/80mm no driver do Windows.
 - Para verificar o estado do serviço, abra services.msc e localize SEZ Print Service.
 
+DIAGNÓSTICO
+- Falhas de registro do serviço: %ProgramData%\SmartEZ\SEZ Print Service\logs\service-install.log
+- Logs de execução: %ProgramData%\SmartEZ\SEZ Print Service\logs\AAAA-MM-DD.log
+
 BUILD
 O EXE do instalador é gerado em Windows pelo GitHub Actions do repositório SEZPrintService.
-O pipeline compila o host C#, valida scripts e testes Node.js e gera o Inno Setup.
+O pipeline baixa os runtimes oficiais, confere os hashes SHA-256, compila o host C#, executa os testes e gera o instalador Inno Setup.
