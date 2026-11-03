@@ -10,7 +10,6 @@ on:
       - "package.json"
       - "tests/**"
       - "setup.iss"
-      - "install-runtime.ps1"
       - "install-service.ps1"
       - "uninstall-service.ps1"
       - "start-service.vbs"
@@ -70,10 +69,59 @@ jobs:
           [System.Reflection.AssemblyName]::GetAssemblyName((Resolve-Path "service-host/SEZPrintServiceHost.exe").Path) | Out-Null
           Write-Host "Host compilado e preparado para o Inno Setup: $($staged.Length) bytes"
 
+      - name: Download and stage bundled Node.js and SumatraPDF
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ProgressPreference = 'SilentlyContinue'
+
+          $runtimeDir = 'runtime'
+          $toolsDir = 'tools'
+          New-Item -ItemType Directory -Path $runtimeDir -Force | Out-Null
+          New-Item -ItemType Directory -Path $toolsDir -Force | Out-Null
+
+          # Node.js 22.23.3 x64 ZIP — SHA-256 do manifesto oficial Node.js.
+          $nodeVersion = '22.23.3'
+          $nodeUrl = "https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip"
+          $nodeExpected = '2b0ff57b049cda1bbcea2240eec20467018713c1efe1f7360c2681859b90ed71'
+          $nodeZip = Join-Path $env:RUNNER_TEMP 'node-win-x64.zip'
+          $nodeExtract = Join-Path $env:RUNNER_TEMP 'node-win-x64'
+          Invoke-WebRequest -Uri $nodeUrl -OutFile $nodeZip -UseBasicParsing
+          $nodeActual = (Get-FileHash -LiteralPath $nodeZip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($nodeActual -ne $nodeExpected) { throw "Node.js ZIP SHA-256 mismatch: $nodeActual" }
+          Expand-Archive -LiteralPath $nodeZip -DestinationPath $nodeExtract -Force
+          $nodeSource = Get-ChildItem -LiteralPath $nodeExtract -Filter 'node.exe' -File -Recurse | Select-Object -First 1
+          if (-not $nodeSource) { throw 'node.exe não encontrado no ZIP oficial Node.js.' }
+          $nodeTarget = Join-Path $runtimeDir 'node.exe'
+          Copy-Item -LiteralPath $nodeSource.FullName -Destination $nodeTarget -Force
+          $nodeSize = (Get-Item -LiteralPath $nodeTarget).Length
+          if ($nodeSize -lt 10000000) { throw "node.exe parece incompleto: $nodeSize bytes" }
+          $nodeDetected = (& $nodeTarget --version).Trim()
+          if ($nodeDetected -ne "v$nodeVersion") { throw "Versão Node.js embarcada inesperada: $nodeDetected" }
+          Write-Host "Runtime Node.js preparado: $nodeDetected ($nodeSize bytes)"
+
+          # SumatraPDF 3.6.1 x64 portátil — SHA-256 verificado do ZIP oficial.
+          $sumatraVersion = '3.6.1'
+          $sumatraUrl = "https://www.sumatrapdfreader.org/dl/rel/$sumatraVersion/SumatraPDF-$sumatraVersion-64.zip"
+          $sumatraExpected = '98b33a518d42986856d225064b0cd2d3643ecf78cbf84ab873d26cc51877a544'
+          $sumatraZip = Join-Path $env:RUNNER_TEMP 'SumatraPDF-64.zip'
+          $sumatraExtract = Join-Path $env:RUNNER_TEMP 'SumatraPDF-64'
+          Invoke-WebRequest -Uri $sumatraUrl -OutFile $sumatraZip -UseBasicParsing
+          $sumatraActual = (Get-FileHash -LiteralPath $sumatraZip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($sumatraActual -ne $sumatraExpected) { throw "SumatraPDF ZIP SHA-256 mismatch: $sumatraActual" }
+          Expand-Archive -LiteralPath $sumatraZip -DestinationPath $sumatraExtract -Force
+          $sumatraSource = Get-ChildItem -LiteralPath $sumatraExtract -Filter 'SumatraPDF*.exe' -File -Recurse | Select-Object -First 1
+          if (-not $sumatraSource) { throw 'Executável SumatraPDF não encontrado no ZIP oficial.' }
+          $sumatraTarget = Join-Path $toolsDir 'SumatraPDF.exe'
+          Copy-Item -LiteralPath $sumatraSource.FullName -Destination $sumatraTarget -Force
+          $sumatraSize = (Get-Item -LiteralPath $sumatraTarget).Length
+          if ($sumatraSize -lt 1000000) { throw "SumatraPDF parece incompleto: $sumatraSize bytes" }
+          Write-Host "SumatraPDF preparado: $sumatraSize bytes"
+
       - name: Validate PowerShell installer scripts
         shell: pwsh
         run: |
-          $files = @('install-runtime.ps1', 'install-service.ps1', 'uninstall-service.ps1')
+          $files = @('install-service.ps1', 'uninstall-service.ps1')
           foreach ($file in $files) {
             $tokens = $null
             $errors = $null
