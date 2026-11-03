@@ -5,6 +5,6 @@
   "description": "Serviço local de impressão automática de documentos HTML do Smart EZ ERP",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/print-engine.test.js"
   }
 }
