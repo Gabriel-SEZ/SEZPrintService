@@ -1,4 +1,4 @@
-# SEZ Print Service 0.4.5
+# SEZ Print Service 0.4.6
 
 Serviço Windows local para impressão automática e silenciosa de documentos do Smart EZ ERP, sem o diálogo de impressão do navegador.
 
@@ -11,6 +11,7 @@ Serviço Windows local para impressão automática e silenciosa de documentos do
 - Fila sequencial, limite de conteúdo, validação do token e allowlist CORS.
 - Serviço Windows automático, supervisionado pelo host C#.
 - Atualização interrompe o serviço anterior antes de substituir o executável em uso.
+- O próprio Inno Setup cria o log de pré-atualização antes de iniciar o PowerShell, permitindo diagnóstico mesmo quando o script não inicia ou não consegue criar seu arquivo.
 
 ## Runtime incluído
 O instalador inclui Node.js 22.23.3 x64 e SumatraPDF 3.6.1 portáteis, obtidos das fontes oficiais e verificados por SHA-256 durante o build. A instalação no computador não baixa nem extrai esses componentes. O host Windows executa o Node empacotado em `runtime\node.exe`; o motor de impressão usa `tools\SumatraPDF.exe`.
@@ -20,11 +21,11 @@ O instalador inclui Node.js 22.23.3 x64 e SumatraPDF 3.6.1 portáteis, obtidos d
 - 80mm: largura térmica de 76mm e altura da página calculada a partir do conteúdo para reduzir cortes e páginas sobrando.
 
 ## Instalação e atualização
-Execute SEZ-Print-Service-Setup.exe como administrador. Antes de substituir os arquivos, o Setup interrompe SEZPrintService, aguarda o processo host liberar SEZPrintServiceHost.exe e registra esse procedimento em `%ProgramData%\SmartEZ\SEZ Print Service\logs\upgrade-stop.log`. Depois, o Setup instala os arquivos e registra/inicia novamente o serviço.
+Execute SEZ-Print-Service-Setup-0.4.6.exe como administrador. Antes de substituir os arquivos, o Setup cria/atualiza `%ProgramData%\SmartEZ\SEZ Print Service\logs\upgrade-stop.log`, extrai o script, interrompe SEZPrintService e aguarda o processo host liberar SEZPrintServiceHost.exe. O log registra cada etapa, o resultado de extração, a inicialização do PowerShell e seu código de saída.
+
+Depois, o Setup instala os arquivos e registra/inicia novamente o serviço.
 
 No ERP, abra Configurações > SEZ Print Service, conecte o serviço, selecione as impressoras e use os testes A4/80mm.
-
-A opção Impressão automática silenciosa pode ser desligada no ERP; quando desligada, o navegador volta ao fluxo de impressão convencional.
 
 ## Requisitos e observações
 - Windows 10/11 x64.
