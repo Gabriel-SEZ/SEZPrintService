@@ -1,0 +1,21 @@
+SUMATRAPDF — AVISO DE COMPONENTE EXTERNO
+=========================================
+
+O instalador SEZ Print Service não incorpora nem redistribui o executável
+SumatraPDF. Durante a instalação, ele baixa a versão portátil diretamente
+do domínio oficial do projeto SumatraPDF e a mantém na pasta de ferramentas
+do SEZ Print Service para executar a impressão local silenciosa.
+
+SumatraPDF é um projeto independente de Smart EZ. Direitos autorais:
+Krzysztof Kowalczyk e colaboradores. O SumatraPDF é distribuído sob a
+GNU General Public License, versão 3 (GPL-3.0), conforme os termos definidos
+pelos mantenedores do projeto.
+
+Projeto e informações oficiais:
+https://www.sumatrapdfreader.org/
+
+Código-fonte e licença:
+https://github.com/sumatrapdfreader/sumatrapdf
+
+O SEZ Print Service não altera o leitor padrão de PDF do Windows nem associa
+arquivos PDF ao SumatraPDF.
