@@ -67,7 +67,7 @@ function prepareHtml(input, format, baseUrl) {
       'var px=Math.max(d.scrollHeight||0,d.offsetHeight||0,b?(b.scrollHeight||0):0,b?(b.offsetHeight||0):0,b?Math.ceil(b.getBoundingClientRect().height):0);' +
       'var mm=Math.max(70,Math.min(2500,Math.ceil(px*25.4/96)+8));' +
       'var s=document.createElement("style");' +
-      's.textContent="@media print{@page{size:80mm '+ "'+mm+'" +'mm;margin:2mm}html,body{width:76mm!important;max-width:76mm!important;min-width:0!important;overflow:visible!important}body{box-sizing:border-box!important}}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}";' +
+      's.textContent="@media print{@page{size:80mm "+mm+"mm;margin:2mm}html,body{width:76mm!important;max-width:76mm!important;min-width:0!important;overflow:visible!important}body{box-sizing:border-box!important}}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}";' +
       'document.head.appendChild(s);document.documentElement.setAttribute("data-sez-print-ready","1");' +
       '}catch(e){}}' +
       'if(document.readyState==="complete")setTimeout(apply,200);else window.addEventListener("load",function(){setTimeout(apply,250)},{once:true});' +
