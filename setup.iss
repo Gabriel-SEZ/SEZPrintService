@@ -1,7 +1,7 @@
 [Setup]
 AppId={{E2D1F55B-79B2-4A9B-9E6A-2B7B6D8D1201}
 AppName=SEZ Print Service
-AppVersion=0.3.2
+AppVersion=0.4.0
 AppPublisher=Smart EZ
 DefaultDirName={autopf}\SEZ Print Service
 DefaultGroupName=SEZ Print Service
@@ -12,16 +12,18 @@ SolidCompression=yes
 PrivilegesRequired=admin
 ArchitecturesInstallIn64BitMode=x64
 WizardStyle=modern
-UninstallDisplayIcon={app}\SEZ-Print-Service.ico
+UninstallDisplayIcon={app}\SEZPrintServiceHost.exe
 
 [Files]
 Source: "server.js"; DestDir: "{app}"; Flags: ignoreversion
+Source: "print-engine.js"; DestDir: "{app}"; Flags: ignoreversion
 Source: "package.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "install-runtime.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "install-service.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "uninstall-service.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "service-host\SEZPrintServiceHost.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LEIA-ME.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "LICENSE-SUMATRAPDF.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\SEZ Print Service - Gerenciar serviço"; Filename: "{sys}\mmc.exe"; Parameters: """{sys}\services.msc"""
@@ -31,7 +33,6 @@ Filename: "{sys}\mmc.exe"; Parameters: """{sys}\services.msc"""; Description: "A
 
 [UninstallRun]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\uninstall-service.ps1"""; Flags: runhidden waituntilterminated
-
 
 [Code]
 procedure RunPowerShellScript(const ScriptName, FriendlyName: string);
@@ -57,7 +58,7 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
-    RunPowerShellScript('install-runtime.ps1', 'Preparação do Node.js');
+    RunPowerShellScript('install-runtime.ps1', 'Instalação dos componentes de impressão');
     RunPowerShellScript('install-service.ps1', 'Instalação do serviço SEZ Print Service');
   end;
 end;
