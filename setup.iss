@@ -1,7 +1,7 @@
 [Setup]
 AppId={{E2D1F55B-79B2-4A9B-9E6A-2B7B6D8D1201}
 AppName=SEZ Print Service
-AppVersion=0.3.1
+AppVersion=0.3.2
 AppPublisher=Smart EZ
 DefaultDirName={autopf}\SEZ Print Service
 DefaultGroupName=SEZ Print Service
@@ -27,9 +27,37 @@ Source: "LEIA-ME.txt"; DestDir: "{app}"; Flags: ignoreversion
 Name: "{group}\SEZ Print Service - Gerenciar serviço"; Filename: "{sys}\mmc.exe"; Parameters: """{sys}\services.msc"""
 
 [Run]
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\install-runtime.ps1"""; StatusMsg: "Preparando o mecanismo de impressão..."; Flags: runhidden waituntilterminated
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\install-service.ps1"""; StatusMsg: "Registrando serviço automático do Windows..."; Flags: runhidden waituntilterminated
 Filename: "{sys}\mmc.exe"; Parameters: """{sys}\services.msc"""; Description: "Abrir gerenciamento do SEZ Print Service"; Flags: postinstall nowait skipifsilent
 
 [UninstallRun]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\uninstall-service.ps1"""; Flags: runhidden waituntilterminated
+
+
+[Code]
+procedure RunPowerShellScript(const ScriptName, FriendlyName: string);
+var
+  ResultCode: Integer;
+  PowerShellPath: string;
+  Parameters: string;
+begin
+  PowerShellPath := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
+  Parameters := '-NoProfile -ExecutionPolicy Bypass -File "' +
+    ExpandConstant('{app}') + '\' + ScriptName + '"';
+
+  if not Exec(PowerShellPath, Parameters, ExpandConstant('{app}'),
+    SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    RaiseException('Não foi possível executar: ' + FriendlyName + '.');
+
+  if ResultCode <> 0 then
+    RaiseException(FriendlyName + ' falhou. Código de saída: ' +
+      IntToStr(ResultCode) + '. O serviço não foi confirmado como instalado.');
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+  begin
+    RunPowerShellScript('install-runtime.ps1', 'Preparação do Node.js');
+    RunPowerShellScript('install-service.ps1', 'Instalação do serviço SEZ Print Service');
+  end;
+end;
