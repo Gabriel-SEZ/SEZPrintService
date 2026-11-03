@@ -1,6 +1,6 @@
 {
   "name": "sez-print-service",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "Serviço local de impressão automática de documentos HTML do Smart EZ ERP",
   "scripts": {
