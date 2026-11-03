@@ -9,6 +9,8 @@ on:
       - "package.json"
       - "setup.iss"
       - "install-runtime.ps1"
+      - "install-service.ps1"
+      - "uninstall-service.ps1"
       - "start-service.vbs"
       - "start-service.cmd"
       - ".github/workflows/build-windows.yml"
@@ -18,8 +20,34 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout SEZ Print Service
         uses: actions/checkout@v4
+
+      - name: Checkout SEZPrintServiceHost source
+        uses: actions/checkout@v4
+        with:
+          repository: Gabriel-SEZ/SEZPrintServiceHost
+          ref: main
+          path: .host-source
+
+      - name: Compile and stage SEZPrintServiceHost.exe
+        shell: pwsh
+        run: |
+          & "./.host-source/scripts/compile-host.ps1"
+          if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar SEZPrintServiceHost.exe." }
+
+          $sourceExe = ".host-source/dist/SEZPrintServiceHost.exe"
+          if (-not (Test-Path -LiteralPath $sourceExe -PathType Leaf)) {
+            throw "Executável do host não foi gerado: $sourceExe"
+          }
+
+          New-Item -ItemType Directory -Path "service-host" -Force | Out-Null
+          Copy-Item -LiteralPath $sourceExe -Destination "service-host/SEZPrintServiceHost.exe" -Force
+
+          $staged = Get-Item "service-host/SEZPrintServiceHost.exe"
+          if ($staged.Length -lt 4096) { throw "Executável do host parece incompleto: $($staged.Length) bytes" }
+          [System.Reflection.AssemblyName]::GetAssemblyName((Resolve-Path "service-host/SEZPrintServiceHost.exe").Path) | Out-Null
+          Write-Host "Host compilado e preparado para o Inno Setup: $($staged.Length) bytes"
 
       - name: Install Inno Setup
         shell: pwsh
@@ -29,14 +57,22 @@ jobs:
         shell: pwsh
         run: |
           $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path -LiteralPath $compiler)) { throw "Inno Setup compiler not found: $compiler" }
           & $compiler /Qp setup.iss
           if ($LASTEXITCODE -ne 0) {
             throw "Compilation failed"
           }
+
+          $installer = "dist/SEZ-Print-Service-Setup.exe"
+          if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) { throw "Installer não foi gerado: $installer" }
+          $item = Get-Item -LiteralPath $installer
+          if ($item.Length -lt 100000) { throw "Instalador parece incompleto: $($item.Length) bytes" }
+          Write-Host "Instalador pronto: $($item.FullName) ($($item.Length) bytes)"
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: SEZ-Print-Service-Setup-Windows-x64
           path: dist/SEZ-Print-Service-Setup.exe
+          if-no-files-found: error
           retention-days: 30
