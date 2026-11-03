@@ -4,7 +4,7 @@ $serviceName = 'SEZPrintService'
 $displayName = 'SEZ Print Service'
 $description = 'Serviço local de impressão silenciosa do Smart EZ ERP. Inicia com o Windows.'
 $exe = Join-Path $PSScriptRoot 'SEZPrintServiceHost.exe'
-$node = Join-Path $env:ProgramFiles 'nodejs\node.exe'
+$node = Join-Path $PSScriptRoot 'runtime\node.exe'
 
 $required = @(
     (Join-Path $PSScriptRoot 'server.js'),
@@ -18,11 +18,13 @@ foreach ($file in $required) {
     }
 }
 if (-not (Test-Path -LiteralPath $node -PathType Leaf)) {
-    $node = Join-Path ([Environment]::GetEnvironmentVariable('ProgramFiles(x86)')) 'nodejs\node.exe'
+    throw "Runtime Node.js embarcado não encontrado: $node"
 }
-if (-not (Test-Path -LiteralPath $node -PathType Leaf)) {
-    throw 'Node.js não está instalado. O serviço não será registrado sem runtime.'
+$nodeVersion = (& $node --version 2>&1 | Out-String).Trim()
+if ($nodeVersion -notmatch '^v22\.') {
+    throw "Versão do runtime Node.js embarcado inesperada: $nodeVersion"
 }
+Write-Host "Runtime Node.js pronto: $nodeVersion"
 
 $existing = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
 if ($existing) {
