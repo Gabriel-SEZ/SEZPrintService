@@ -1,13 +1,19 @@
-SEZ PRINT SERVICE 0.4.5 — IMPRESSÃO AUTOMÁTICA A4 E 80mm
+SEZ PRINT SERVICE 0.4.6 — IMPRESSÃO AUTOMÁTICA A4 E 80mm
 =========================================================
 
-CORREÇÃO DA ATUALIZAÇÃO
+CORREÇÃO DO DIAGNÓSTICO DE ATUALIZAÇÃO
+- O próprio Inno Setup cria %ProgramData%\SmartEZ\SEZ Print Service\logs\upgrade-stop.log antes de iniciar o PowerShell.
+- Assim, o log é criado mesmo quando o PowerShell não inicia, quando prepare-update.ps1 não pode ser extraído ou quando o script falha antes de registrar sua primeira etapa.
+- O instalador registra a extração do script, caminho temporário, existência do PowerShell, tentativa de execução e código de saída.
+- O PowerShell também recebe o caminho absoluto do mesmo log e acrescenta detalhes da parada do serviço e dos processos residuais.
+- Se a parada não for confirmada, o Setup cancela a atualização sem tentar substituir um executável bloqueado.
+
+ATUALIZAÇÃO
 - Antes de atualizar, o Setup interrompe o serviço Windows SEZPrintService.
 - Aguarda o processo SEZPrintServiceHost.exe encerrar e liberar o arquivo.
 - Se necessário, encerra somente um processo residual com esse nome, após tentar a parada normal do serviço.
-- Se o executável continuar bloqueado, cancela a atualização e informa o log; não oferece ignorar/substituir parcialmente o host.
 - O serviço é registrado e iniciado novamente depois da cópia dos arquivos.
-- Log da parada para atualização: %ProgramData%\SmartEZ\SEZ Print Service\logs\upgrade-stop.log.
+- Log de atualização: %ProgramData%\SmartEZ\SEZ Print Service\logs\upgrade-stop.log.
 - Log do registro/inicialização: %ProgramData%\SmartEZ\SEZ Print Service\logs\service-install.log.
 
 RUNTIME EMBARCADO
@@ -31,23 +37,21 @@ IMPRESSÃO
 - Formatos suportados: A4 e bobina térmica 80mm.
 - Mantém estilos, imagens, logos, fontes e referências relativas ao domínio Smart EZ.
 - Processa trabalhos em fila para não sobrepor documentos.
-- A resposta positiva confirma o envio ao spooler do Windows; não é um sensor físico de saída do papel.
+- A resposta positiva confirma o envio ao spooler do Windows; não é sensor físico de saída do papel.
 
 INSTALAÇÃO
-1. Execute SEZ-Print-Service-Setup-0.4.5.exe como administrador.
-2. Se já houver uma versão anterior, o Setup vai pará-la antes de substituir o EXE.
+1. Execute SEZ-Print-Service-Setup-0.4.6.exe como administrador.
+2. Se já houver uma versão anterior, o Setup tentará pará-la antes de substituir o EXE.
 3. O serviço SEZ Print Service será registrado e iniciado automaticamente.
 4. No Smart EZ ERP, abra Configurações > SEZ Print Service.
 5. Conecte, atualize as impressoras e salve a impressora A4 e a impressora 80mm.
 6. Ative ou desative "Impressão automática silenciosa" conforme necessário.
 7. Use os botões de teste A4 e 80mm antes de iniciar os atendimentos.
 
-REQUISITOS IMPORTANTES
-- O computador precisa ter Microsoft Edge ou Google Chrome instalado em nível de máquina para renderização.
-- Como o serviço roda como LocalSystem antes do login, filas e drivers precisam estar instalados para o computador/todos os usuários. Impressoras adicionadas somente ao perfil pessoal podem não aparecer.
-- Instale drivers oficiais da impressora e confirme o tamanho de papel A4/80mm no driver do Windows.
-- Não é necessário Node.js global nem internet para baixar runtime durante a instalação.
-- Para verificar o estado do serviço, abra services.msc e localize SEZ Print Service.
+DIAGNÓSTICO
+Se a atualização falhar, envie:
+%ProgramData%\SmartEZ\SEZ Print Service\logs\upgrade-stop.log
 
-BUILD
-O EXE é gerado por GitHub Actions em Windows e inclui os runtimes verificados, o host C# e o mecanismo de impressão.
+Se o registro do serviço falhar, envie:
+%ProgramData%\SmartEZ\SEZ Print Service\logs\service-install.log
+
