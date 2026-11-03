@@ -92,10 +92,14 @@ jobs:
           Expand-Archive -LiteralPath $nodeZip -DestinationPath $nodeExtract -Force
           $nodeSource = Get-ChildItem -LiteralPath $nodeExtract -Filter 'node.exe' -File -Recurse | Select-Object -First 1
           if (-not $nodeSource) { throw 'node.exe não encontrado no ZIP oficial Node.js.' }
+          # Copiar a distribuição completa: node.exe pode depender das DLLs
+          # que acompanham o ZIP (OpenSSL, libuv, ICU e outras).
+          Copy-Item -Path (Join-Path $nodeSource.DirectoryName '*') -Destination $runtimeDir -Recurse -Force
           $nodeTarget = Join-Path $runtimeDir 'node.exe'
-          Copy-Item -LiteralPath $nodeSource.FullName -Destination $nodeTarget -Force
           $nodeSize = (Get-Item -LiteralPath $nodeTarget).Length
           if ($nodeSize -lt 10000000) { throw "node.exe parece incompleto: $nodeSize bytes" }
+          $nodeDlls = @(Get-ChildItem -LiteralPath $runtimeDir -Filter '*.dll' -File)
+          if ($nodeDlls.Count -lt 1) { throw 'A distribuição Node.js foi copiada sem as DLLs nativas necessárias.' }
           $nodeDetected = (& $nodeTarget --version).Trim()
           if ($nodeDetected -ne "v$nodeVersion") { throw "Versão Node.js embarcada inesperada: $nodeDetected" }
           Write-Host "Runtime Node.js preparado: $nodeDetected ($nodeSize bytes)"
@@ -112,8 +116,12 @@ jobs:
           Expand-Archive -LiteralPath $sumatraZip -DestinationPath $sumatraExtract -Force
           $sumatraSource = Get-ChildItem -LiteralPath $sumatraExtract -Filter 'SumatraPDF*.exe' -File -Recurse | Select-Object -First 1
           if (-not $sumatraSource) { throw 'Executável SumatraPDF não encontrado no ZIP oficial.' }
+          # Incluir todos os recursos da distribuição portátil caso existam ao lado do EXE.
+          Copy-Item -Path (Join-Path $sumatraSource.DirectoryName '*') -Destination $toolsDir -Recurse -Force
           $sumatraTarget = Join-Path $toolsDir 'SumatraPDF.exe'
-          Copy-Item -LiteralPath $sumatraSource.FullName -Destination $sumatraTarget -Force
+          if (-not (Test-Path -LiteralPath $sumatraTarget -PathType Leaf)) {
+            Copy-Item -LiteralPath $sumatraSource.FullName -Destination $sumatraTarget -Force
+          }
           $sumatraSize = (Get-Item -LiteralPath $sumatraTarget).Length
           if ($sumatraSize -lt 1000000) { throw "SumatraPDF parece incompleto: $sumatraSize bytes" }
           Write-Host "SumatraPDF preparado: $sumatraSize bytes"
