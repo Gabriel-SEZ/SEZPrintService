@@ -13,7 +13,7 @@ const server=http.createServer(async(req,res)=>{
  if(req.method==='OPTIONS'){const h={'Vary':'Origin'};if(ALLOWED_ORIGINS.has(origin)){h['Access-Control-Allow-Origin']=origin;h['Access-Control-Allow-Headers']='Content-Type, X-SEZ-Print-Token';h['Access-Control-Allow-Methods']='GET, POST, OPTIONS';h['Access-Control-Allow-Private-Network']='true';}res.writeHead(204,h);return res.end();}if(origin&&!ALLOWED_ORIGINS.has(origin))return send(req,res,403,{ok:false,error:'Origem não autorizada.'});
  const url=new URL(req.url,'http://localhost');
  try{
-  if(url.pathname==='/api/status'&&req.method==='GET')return send(req,res,200,{ok:true,service:'SEZ Print Service',version,pairingToken:token,host:os.hostname(),capabilities:{automaticPrint:true,htmlToPdf:true,formats:['a4','80mm','58mm']}});
+  if(url.pathname==='/api/status'&&req.method==='GET')return send(req,res,200,{ok:true,service:'SEZ Print Service',version,pairingToken:token,host:os.hostname(),capabilities:{automaticPrint:true,printHtml:true,htmlToPdf:true,formats:['a4','80mm'],maxDocumentBytes:10*1024*1024}});
   if(req.headers['x-sez-print-token']!==token)return send(req,res,401,{ok:false,error:'Token local inválido. Reconecte pelo ERP.'});
   if(url.pathname==='/api/printers'&&req.method==='GET')return send(req,res,200,{ok:true,printers:await printers()});
   if((url.pathname==='/api/test'||url.pathname==='/api/print')&&req.method==='POST'){
