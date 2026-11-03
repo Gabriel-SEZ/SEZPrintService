@@ -1,1 +1,6 @@
-ATENÇÃO: O EXE SEZ-Print-Service-Setup.exe atualmente embutido no ERP é da geração anterior (VBS/inicialização no login). O novo instalador 0.3.0 precisa ser compilado pelo workflow GitHub Actions deste projeto antes de ser distribuído. Não instale o EXE antigo esperando comportamento de serviço nativo.
+BUILD SEZ PRINT SERVICE 0.4.0
+==============================
+
+O projeto agora contém o motor de impressão de documentos HTML (print-engine.js), a rota POST /api/print, preparação de runtime Node.js/SumatraPDF e testes automatizados.
+O pipeline GitHub Actions compila o host nativo Windows e o instalador Inno Setup.
+O artefato SEZ-Print-Service-Setup-Windows-x64 é gerado após a execução bem-sucedida do workflow.
