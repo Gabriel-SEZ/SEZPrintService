@@ -10,7 +10,7 @@ function Write-Step([string]$Message) {
 }
 
 try {
-Write-Step 'Iniciando registro do serviço SEZ Print Service 0.4.3.'
+Write-Step 'Iniciando registro do serviço SEZ Print Service 0.4.4.'
 
 $serviceName = 'SEZPrintService'
 $displayName = 'SEZ Print Service'
