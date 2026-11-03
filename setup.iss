@@ -1,7 +1,7 @@
 [Setup]
 AppId={{E2D1F55B-79B2-4A9B-9E6A-2B7B6D8D1201}
 AppName=SEZ Print Service
-AppVersion=0.4.3
+AppVersion=0.4.4
 AppPublisher=Smart EZ
 DefaultDirName={autopf}\SEZ Print Service
 DefaultGroupName=SEZ Print Service
@@ -21,8 +21,8 @@ Source: "package.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "install-service.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "uninstall-service.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "service-host\SEZPrintServiceHost.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "runtime\node.exe"; DestDir: "{app}\runtime"; Flags: ignoreversion
-Source: "tools\SumatraPDF.exe"; DestDir: "{app}\tools"; Flags: ignoreversion
+Source: "runtime\*"; DestDir: "{app}\runtime"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "tools\*"; DestDir: "{app}\tools"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "LEIA-ME.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-SUMATRAPDF.txt"; DestDir: "{app}"; Flags: ignoreversion
 
