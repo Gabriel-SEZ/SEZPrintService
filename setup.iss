@@ -1,7 +1,7 @@
 [Setup]
 AppId={{E2D1F55B-79B2-4A9B-9E6A-2B7B6D8D1201}
 AppName=SEZ Print Service
-AppVersion=0.4.0
+AppVersion=0.4.1
 AppPublisher=Smart EZ
 DefaultDirName={autopf}\SEZ Print Service
 DefaultGroupName=SEZ Print Service
@@ -51,7 +51,7 @@ begin
 
   if ResultCode <> 0 then
     RaiseException(FriendlyName + ' falhou. Código de saída: ' +
-      IntToStr(ResultCode) + '. O serviço não foi confirmado como instalado.');
+      IntToStr(ResultCode) + '. Consulte o log: {commonappdata}\\SmartEZ\\SEZ Print Service\\logs\\installer-components.log.');
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
