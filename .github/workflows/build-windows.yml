@@ -49,6 +49,20 @@ jobs:
           [System.Reflection.AssemblyName]::GetAssemblyName((Resolve-Path "service-host/SEZPrintServiceHost.exe").Path) | Out-Null
           Write-Host "Host compilado e preparado para o Inno Setup: $($staged.Length) bytes"
 
+      - name: Validate PowerShell installer scripts
+        shell: pwsh
+        run: |
+          $files = @('install-runtime.ps1', 'install-service.ps1', 'uninstall-service.ps1')
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $file), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error ($file + ': ' + $_.Message) }
+              throw ('Erro de sintaxe no script ' + $file)
+            }
+            Write-Host ('Sintaxe válida: ' + $file)
+          }
       - name: Install Inno Setup
         shell: pwsh
         run: choco install innosetup --yes --no-progress
