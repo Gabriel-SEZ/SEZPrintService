@@ -153,7 +153,7 @@ jobs:
           & $compiler /Qp setup.iss
           if ($LASTEXITCODE -ne 0) { throw "Compilation failed" }
 
-          $installer = "dist/SEZ-Print-Service-Setup.exe"
+          $installer = "dist/SEZ-Print-Service-Setup-0.4.5.exe"
           if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) { throw "Installer não foi gerado: $installer" }
           $item = Get-Item -LiteralPath $installer
           if ($item.Length -lt 100000) { throw "Instalador parece incompleto: $($item.Length) bytes" }
@@ -163,6 +163,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SEZ-Print-Service-Setup-Windows-x64
-          path: dist/SEZ-Print-Service-Setup.exe
+          path: dist/SEZ-Print-Service-Setup-0.4.5.exe
           if-no-files-found: error
           retention-days: 30
