@@ -1,12 +1,12 @@
 [Setup]
 AppId={{E2D1F55B-79B2-4A9B-9E6A-2B7B6D8D1201}
 AppName=SEZ Print Service
-AppVersion=0.4.5
+AppVersion=0.4.6
 AppPublisher=Smart EZ
 DefaultDirName={autopf}\SEZ Print Service
 DefaultGroupName=SEZ Print Service
 OutputDir=dist
-OutputBaseFilename=SEZ-Print-Service-Setup-0.4.5
+OutputBaseFilename=SEZ-Print-Service-Setup-0.4.6
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=admin
@@ -54,31 +54,85 @@ begin
       ExpandConstant('{commonappdata}\SmartEZ\SEZ Print Service\logs\service-install.log') + '.');
 end;
 
+function AppendUpgradeLog(const LogFile, Message: String): Boolean;
+var
+  Line: String;
+begin
+  Line := GetDateTimeString('yyyy-mm-dd hh:nn:ss', '-', ':') + ' ' + Message + #13#10;
+  Result := SaveStringToFile(LogFile, Line, True);
+end;
+
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   ResultCode: Integer;
-  PowerShellPath: string;
-  Parameters: string;
+  PowerShellPath: String;
+  Parameters: String;
+  LogDir: String;
+  LogFile: String;
+  ScriptFile: String;
 begin
   Result := '';
-  ExtractTemporaryFile('prepare-update.ps1');
-  PowerShellPath := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
-  Parameters := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
-    ExpandConstant('{tmp}\prepare-update.ps1') + '"';
+  LogDir := ExpandConstant('{commonappdata}\SmartEZ\SEZ Print Service\logs');
+  LogFile := LogDir + '\upgrade-stop.log';
 
+  if not ForceDirectories(LogDir) then
+  begin
+    Result := 'Não foi possível criar a pasta de diagnóstico: ' + LogDir;
+    Exit;
+  end;
+
+  if not AppendUpgradeLog(LogFile, 'O instalador iniciou a preparação da atualização 0.4.6.') then
+  begin
+    Result := 'Não foi possível gravar o log de atualização: ' + LogFile;
+    Exit;
+  end;
+
+  try
+    ExtractTemporaryFile('prepare-update.ps1');
+  except
+    Result := 'Não foi possível extrair prepare-update.ps1. Consulte: ' + LogFile;
+    AppendUpgradeLog(LogFile, 'FALHA: ExtractTemporaryFile prepare-update.ps1.');
+    Exit;
+  end;
+
+  ScriptFile := ExpandConstant('{tmp}\prepare-update.ps1');
+  if not FileExists(ScriptFile) then
+  begin
+    Result := 'O script de atualização não foi encontrado em ' + ScriptFile + '. Consulte: ' + LogFile;
+    AppendUpgradeLog(LogFile, 'FALHA: arquivo temporário prepare-update.ps1 ausente.');
+    Exit;
+  end;
+  AppendUpgradeLog(LogFile, 'Script prepare-update.ps1 extraído para: ' + ScriptFile);
+
+  PowerShellPath := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
+  if not FileExists(PowerShellPath) then
+  begin
+    Result := 'Windows PowerShell não foi encontrado em ' + PowerShellPath + '. Consulte: ' + LogFile;
+    AppendUpgradeLog(LogFile, 'FALHA: powershell.exe não encontrado.');
+    Exit;
+  end;
+
+  Parameters := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+    ScriptFile + '" -LogFile "' + LogFile + '"';
+
+  AppendUpgradeLog(LogFile, 'Iniciando PowerShell para parar o serviço anterior.');
   if not Exec(PowerShellPath, Parameters, ExpandConstant('{tmp}'),
     SW_HIDE, ewWaitUntilTerminated, ResultCode) then
   begin
-    Result := 'Não foi possível parar a versão anterior do SEZ Print Service antes da atualização.';
+    AppendUpgradeLog(LogFile, 'FALHA: não foi possível iniciar powershell.exe.');
+    Result := 'Não foi possível iniciar a rotina de parada do serviço. Consulte: ' + LogFile;
     Exit;
   end;
 
+  AppendUpgradeLog(LogFile, 'PowerShell terminou com código de saída: ' + IntToStr(ResultCode));
+
   if ResultCode <> 0 then
   begin
-    Result := 'Não foi possível liberar SEZPrintServiceHost.exe. Consulte o log: ' +
-      ExpandConstant('{commonappdata}\SmartEZ\SEZ Print Service\logs\upgrade-stop.log') + '.';
+    Result := 'Não foi possível liberar SEZPrintServiceHost.exe. Consulte o diagnóstico: ' + LogFile;
     Exit;
   end;
+
+  AppendUpgradeLog(LogFile, 'Pré-atualização concluída. O Setup pode substituir os arquivos.');
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
