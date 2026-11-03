@@ -11,6 +11,7 @@ on:
       - "tests/**"
       - "setup.iss"
       - "install-service.ps1"
+      - "prepare-update.ps1"
       - "uninstall-service.ps1"
       - "start-service.vbs"
       - "start-service.cmd"
@@ -127,7 +128,7 @@ jobs:
       - name: Validate PowerShell installer scripts
         shell: pwsh
         run: |
-          $files = @('install-service.ps1', 'uninstall-service.ps1')
+          $files = @('prepare-update.ps1', 'install-service.ps1', 'uninstall-service.ps1')
           foreach ($file in $files) {
             $tokens = $null
             $errors = $null
