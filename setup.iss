@@ -1,7 +1,7 @@
 [Setup]
 AppId={{E2D1F55B-79B2-4A9B-9E6A-2B7B6D8D1201}
 AppName=SEZ Print Service
-AppVersion=0.4.2
+AppVersion=0.4.3
 AppPublisher=Smart EZ
 DefaultDirName={autopf}\SEZ Print Service
 DefaultGroupName=SEZ Print Service
@@ -18,10 +18,11 @@ UninstallDisplayIcon={app}\SEZPrintServiceHost.exe
 Source: "server.js"; DestDir: "{app}"; Flags: ignoreversion
 Source: "print-engine.js"; DestDir: "{app}"; Flags: ignoreversion
 Source: "package.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "install-runtime.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "install-service.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "uninstall-service.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "service-host\SEZPrintServiceHost.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "runtime\node.exe"; DestDir: "{app}\runtime"; Flags: ignoreversion
+Source: "tools\SumatraPDF.exe"; DestDir: "{app}\tools"; Flags: ignoreversion
 Source: "LEIA-ME.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-SUMATRAPDF.txt"; DestDir: "{app}"; Flags: ignoreversion
 
@@ -56,7 +57,6 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
-    RunPowerShellScript('install-runtime.ps1', 'Instalação dos componentes de impressão');
     RunPowerShellScript('install-service.ps1', 'Instalação do serviço SEZ Print Service');
   end;
 end;
