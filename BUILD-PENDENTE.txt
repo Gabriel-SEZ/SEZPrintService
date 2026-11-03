@@ -1,0 +1,1 @@
+ATENÇÃO: O EXE SEZ-Print-Service-Setup.exe atualmente embutido no ERP é da geração anterior (VBS/inicialização no login). O novo instalador 0.3.0 precisa ser compilado pelo workflow GitHub Actions deste projeto antes de ser distribuído. Não instale o EXE antigo esperando comportamento de serviço nativo.

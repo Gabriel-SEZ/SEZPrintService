@@ -1,34 +1,46 @@
-SEZ PRINT SERVICE 0.2.0 — PACOTE DE INSTALAÇÃO
-===============================================
+SEZ PRINT SERVICE 0.3.0 — SERVIÇO NATIVO DO WINDOWS
+==================================================
 
 Compatibilidade alvo: Windows 10 e Windows 11, 64 bits.
 
-O instalador Inno Setup baixa e instala o Node.js 22.23.3 x64 oficial
-quando não encontra o runtime. O usuário não precisa instalar Node manualmente.
-É necessária conexão à internet durante a primeira instalação se Node.js não
-estiver presente.
+COMPORTAMENTO
+- Instala SEZPrintService como serviço nativo do Windows.
+- Tipo de inicialização: Automático, executado pelo Windows durante a inicialização e antes do login do usuário.
+- Conta: LocalSystem (sem depender de uma conta interativa).
+- Processo Node.js executado oculto, sem janela de console.
+- Se o processo Node.js encerrar, o host tenta iniciá-lo novamente após 5 segundos.
+- O Gerenciador de Controle de Serviços do Windows também reinicia o host em falhas.
+- Serviço pode ser iniciado, parado e reiniciado em services.msc.
+- Logs em %ProgramData%\SmartEZ\SEZ Print Service\logs.
+- Desinstalador remove o serviço antes de remover os arquivos.
 
-COMPILAR O INSTALADOR
-1. Em um computador Windows, instale Inno Setup 6.
-2. Abra setup.iss no Inno Setup Compiler.
-3. Compile. O resultado será dist/SEZ-Print-Service-Setup.exe.
-4. Execute o instalador como administrador.
+IMPORTANTE SOBRE IMPRESSORAS
+Como o serviço inicia antes do login e roda como LocalSystem, as filas e drivers de impressão precisam estar instalados para o computador (todos os usuários), não apenas no perfil de um usuário. Impressoras instaladas somente por usuário podem não aparecer. Isso é necessário para manter o serviço disponível antes do login.
 
-O serviço é iniciado em segundo plano e recebe uma entrada na pasta Inicializar
-do Windows para iniciar no login. O serviço escuta apenas em 127.0.0.1.
+INSTALAÇÃO E BUILD
+O instalador é compilado no GitHub Actions:
+1. Envie o conteúdo deste projeto para um repositório GitHub.
+2. Abra Actions > Build SEZ Print Service installer > Run workflow.
+3. Baixe o artefato SEZ-Print-Service-Setup-Windows-x64.
+4. Execute o EXE como administrador.
 
-TESTE
-1. Abra o ERP em https://smartez.com.br.
-2. Configurações > Impressão > Conectar serviço.
-3. Atualize a lista de impressoras.
-4. Escolha padrões A4 e 80mm e salve.
-5. Envie teste de impressão.
+O workflow compila service-host\SezPrintServiceHost.exe com o compilador C# do Windows e depois compila o instalador Inno Setup.
 
-LIMITAÇÕES IMPORTANTES DESTA VERSÃO
-- A compilação final do EXE requer Inno Setup no Windows e não foi feita neste ambiente.
-- O motor de impressão desta versão lista impressoras Windows e envia teste textual.
-- Ainda não envia contratos, DANFE, recibos e demais documentos reais. Essa integração
-  precisa ser implementada e testada separadamente para cada fluxo/formatos.
-- A desinstalação não remove Node.js, pois ele pode ser usado por outros programas.
-- O serviço usa autenticação local efêmera e CORS limitado ao domínio Smart EZ.
-- A configuração de impressoras fica no navegador de cada computador.
+GERENCIAMENTO
+- Abra services.msc.
+- Localize “SEZ Print Service”.
+- Use Iniciar, Parar ou Reiniciar.
+- Tipo de inicialização: Automático.
+
+TESTE NO ERP
+1. Abra https://smartez.com.br.
+2. Acesse Configurações > SEZ Print Service.
+3. Conecte e atualize a lista de impressoras.
+4. Escolha impressoras padrão A4 e 80mm e envie um teste.
+
+LIMITAÇÕES
+- Esta versão do motor lista impressoras Windows e envia teste textual. Não implementa impressão de documentos reais (OS, contratos, DANFE, recibos) por si só.
+- O instalador precisa ser compilado pelo workflow para gerar o EXE 0.3.0. O EXE anterior não vira serviço nativo apenas pela atualização dos scripts.
+- A primeira instalação do Node.js pode exigir internet.
+- O instalador não remove Node.js na desinstalação, pois ele pode ser utilizado por outros programas.
+- Não exponha a porta 32177 à rede; o servidor deve continuar restrito a 127.0.0.1.
