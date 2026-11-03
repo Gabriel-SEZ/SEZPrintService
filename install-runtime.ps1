@@ -4,7 +4,6 @@ $ErrorActionPreference = 'Stop'
 $logDir = Join-Path $env:ProgramData 'SmartEZ\SEZ Print Service\logs'
 New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 $logFile = Join-Path $logDir 'installer-components.log'
-$transcriptStarted = $false
 
 function Write-Step([string]$Message) {
     $line = '[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] ' + $Message
@@ -28,11 +27,6 @@ function Find-Node {
 }
 
 try {
-    try {
-        Start-Transcript -LiteralPath $logFile -Append -Force | Out-Null
-        $transcriptStarted = $true
-    } catch { }
-
     Write-Step 'Iniciando preparação dos componentes do SEZ Print Service 0.4.1.'
 
     # Node.js 22.23.3 x64 — SHA-256 publicado no anúncio oficial da versão.
@@ -160,9 +154,4 @@ catch {
     Write-Step ("FALHA: " + $detail)
     Write-Error ("Falha ao preparar os componentes. Detalhes em: " + $logFile + " — " + $_.Exception.Message)
     exit 1
-}
-finally {
-    if ($transcriptStarted) {
-        try { Stop-Transcript | Out-Null } catch { }
-    }
 }
