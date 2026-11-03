@@ -16,8 +16,7 @@ function Find-Node {
     $bases = @(
         $env:ProgramW6432,
         $env:ProgramFiles,
-        [Environment]::GetEnvironmentVariable('ProgramFiles(x86)'),
-        $env:LOCALAPPDATA
+        [Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
     ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
 
     foreach ($base in $bases) {
@@ -25,10 +24,6 @@ function Find-Node {
         if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
     }
 
-    $command = Get-Command node.exe -ErrorAction SilentlyContinue
-    if ($command -and $command.Source -and (Test-Path -LiteralPath $command.Source -PathType Leaf)) {
-        return $command.Source
-    }
     return $null
 }
 
@@ -97,9 +92,9 @@ try {
     }
 
     $installedVersion = (& $node --version 2>&1 | Out-String).Trim()
-    if ($installedVersion -notmatch '^v?(\d+)\.' -or [int]$Matches[1] -lt 20) {
-        throw "Versão Node.js incompatível após preparação: $installedVersion"
-    }
+    $nodeMajor = 0
+    if ($installedVersion -match '^v?(\d+)\.') { $nodeMajor = [int]$Matches[1] }
+    if ($nodeMajor -lt 20) { throw "Versão Node.js incompatível após preparação: $installedVersion" }
     Write-Step "Node.js pronto: $installedVersion em $node"
 
     # SumatraPDF 3.6.1 x64 — download portátil oficial com hash conferido.
@@ -109,6 +104,9 @@ try {
     $sumatraExe = Join-Path $toolsDir 'SumatraPDF.exe'
     New-Item -ItemType Directory -Path $toolsDir -Force | Out-Null
 
+    if ((Test-Path -LiteralPath $sumatraExe -PathType Leaf) -and (Get-Item -LiteralPath $sumatraExe).Length -lt 1000000) {
+        Remove-Item -LiteralPath $sumatraExe -Force
+    }
     if (Test-Path -LiteralPath $sumatraExe -PathType Leaf) {
         Write-Step 'SumatraPDF portátil já existe; verificando arquivo.'
     } else {
