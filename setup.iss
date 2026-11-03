@@ -1,7 +1,7 @@
 [Setup]
 AppId={{E2D1F55B-79B2-4A9B-9E6A-2B7B6D8D1201}
 AppName=SEZ Print Service
-AppVersion=0.3.0
+AppVersion=0.3.1
 AppPublisher=Smart EZ
 DefaultDirName={autopf}\SEZ Print Service
 DefaultGroupName=SEZ Print Service
@@ -24,12 +24,12 @@ Source: "service-host\SEZPrintServiceHost.exe"; DestDir: "{app}"; Flags: ignorev
 Source: "LEIA-ME.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\SEZ Print Service - Gerenciar serviço"; Filename: "{sys}\services.msc"
+Name: "{group}\SEZ Print Service - Gerenciar serviço"; Filename: "{sys}\mmc.exe"; Parameters: """{sys}\services.msc"""
 
 [Run]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\install-runtime.ps1"""; StatusMsg: "Preparando o mecanismo de impressão..."; Flags: runhidden waituntilterminated
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\install-service.ps1"""; StatusMsg: "Registrando serviço automático do Windows..."; Flags: runhidden waituntilterminated
-Filename: "{sys}\services.msc"; Description: "Abrir gerenciamento do SEZ Print Service"; Flags: postinstall nowait skipifsilent
+Filename: "{sys}\mmc.exe"; Parameters: """{sys}\services.msc"""; Description: "Abrir gerenciamento do SEZ Print Service"; Flags: postinstall nowait skipifsilent
 
 [UninstallRun]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\uninstall-service.ps1"""; Flags: runhidden waituntilterminated
