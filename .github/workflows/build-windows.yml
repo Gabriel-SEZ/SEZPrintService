@@ -92,14 +92,12 @@ jobs:
           Expand-Archive -LiteralPath $nodeZip -DestinationPath $nodeExtract -Force
           $nodeSource = Get-ChildItem -LiteralPath $nodeExtract -Filter 'node.exe' -File -Recurse | Select-Object -First 1
           if (-not $nodeSource) { throw 'node.exe não encontrado no ZIP oficial Node.js.' }
-          # Copiar a distribuição completa: node.exe pode depender das DLLs
-          # que acompanham o ZIP (OpenSSL, libuv, ICU e outras).
-          Copy-Item -Path (Join-Path $nodeSource.DirectoryName '*') -Destination $runtimeDir -Recurse -Force
+          # Empacotar node.exe e validar sua execução já na pasta final.
+          # O binário oficial Windows é autocontido e não requer DLLs privadas ao lado.
           $nodeTarget = Join-Path $runtimeDir 'node.exe'
+          Copy-Item -LiteralPath $nodeSource.FullName -Destination $nodeTarget -Force
           $nodeSize = (Get-Item -LiteralPath $nodeTarget).Length
           if ($nodeSize -lt 10000000) { throw "node.exe parece incompleto: $nodeSize bytes" }
-          $nodeDlls = @(Get-ChildItem -LiteralPath $runtimeDir -Filter '*.dll' -File)
-          if ($nodeDlls.Count -lt 1) { throw 'A distribuição Node.js foi copiada sem as DLLs nativas necessárias.' }
           $nodeDetected = (& $nodeTarget --version).Trim()
           if ($nodeDetected -ne "v$nodeVersion") { throw "Versão Node.js embarcada inesperada: $nodeDetected" }
           Write-Host "Runtime Node.js preparado: $nodeDetected ($nodeSize bytes)"
