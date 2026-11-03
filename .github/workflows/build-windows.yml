@@ -6,13 +6,19 @@ on:
     branches: [main]
     paths:
       - "server.js"
+      - "print-engine.js"
       - "package.json"
+      - "tests/**"
       - "setup.iss"
       - "install-runtime.ps1"
       - "install-service.ps1"
       - "uninstall-service.ps1"
       - "start-service.vbs"
       - "start-service.cmd"
+      - "VERSION.txt"
+      - "LEIA-ME.txt"
+      - "README.md"
+      - "LICENSE-SUMATRAPDF.txt"
       - ".github/workflows/build-windows.yml"
 
 jobs:
@@ -22,6 +28,21 @@ jobs:
     steps:
       - name: Checkout SEZ Print Service
         uses: actions/checkout@v4
+
+      - name: Setup Node.js for validation
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.23.3"
+
+      - name: Validate Node.js source and tests
+        shell: pwsh
+        run: |
+          node --check server.js
+          if ($LASTEXITCODE -ne 0) { throw "Syntax error in server.js" }
+          node --check print-engine.js
+          if ($LASTEXITCODE -ne 0) { throw "Syntax error in print-engine.js" }
+          npm test
+          if ($LASTEXITCODE -ne 0) { throw "SEZ Print Service tests failed" }
 
       - name: Checkout SEZPrintServiceHost source
         uses: actions/checkout@v4
@@ -63,6 +84,7 @@ jobs:
             }
             Write-Host ('Sintaxe válida: ' + $file)
           }
+
       - name: Install Inno Setup
         shell: pwsh
         run: choco install innosetup --yes --no-progress
@@ -70,12 +92,11 @@ jobs:
       - name: Compile installer
         shell: pwsh
         run: |
-          $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          $programFilesX86 = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
+          $compiler = Join-Path $programFilesX86 'Inno Setup 6\ISCC.exe'
           if (-not (Test-Path -LiteralPath $compiler)) { throw "Inno Setup compiler not found: $compiler" }
           & $compiler /Qp setup.iss
-          if ($LASTEXITCODE -ne 0) {
-            throw "Compilation failed"
-          }
+          if ($LASTEXITCODE -ne 0) { throw "Compilation failed" }
 
           $installer = "dist/SEZ-Print-Service-Setup.exe"
           if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) { throw "Installer não foi gerado: $installer" }
