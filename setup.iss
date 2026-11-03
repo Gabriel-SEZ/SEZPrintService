@@ -1,7 +1,7 @@
 [Setup]
 AppId={{E2D1F55B-79B2-4A9B-9E6A-2B7B6D8D1201}
 AppName=SEZ Print Service
-AppVersion=0.2.3
+AppVersion=0.2.4
 AppPublisher=Smart EZ
 DefaultDirName={autopf}\SEZ Print Service
 DefaultGroupName=SEZ Print Service
@@ -18,6 +18,7 @@ UninstallDisplayIcon={app}\SEZ-Print-Service.ico
 Source: "server.js"; DestDir: "{app}"; Flags: ignoreversion
 Source: "package.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "start-service.vbs"; DestDir: "{app}"; Flags: ignoreversion
+Source: "start-service.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "install-runtime.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LEIA-ME.txt"; DestDir: "{app}"; Flags: ignoreversion
 
