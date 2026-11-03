@@ -1,14 +1,19 @@
-SEZ PRINT SERVICE 0.4.4 — IMPRESSÃO AUTOMÁTICA A4 E 80mm
+SEZ PRINT SERVICE 0.4.5 — IMPRESSÃO AUTOMÁTICA A4 E 80mm
 =========================================================
 
-CORREÇÃO DO RUNTIME EMBARCADO
-- O instalador inclui a distribuição completa Node.js 22.23.3 x64.
-- Inclui node.exe, DLLs nativas e arquivos auxiliares que acompanham o ZIP oficial.
-- Não copia apenas node.exe: dependências como OpenSSL/libuv permanecem junto ao executável.
-- O build executa o node.exe a partir da pasta final runtime e confirma a versão.
-- O pacote portátil SumatraPDF 3.6.1 também inclui os arquivos auxiliares encontrados junto ao EXE.
-- Os hashes SHA-256 dos arquivos ZIP oficiais são conferidos antes de empacotar.
-- O instalador não baixa nem instala runtimes no computador.
+CORREÇÃO DA ATUALIZAÇÃO
+- Antes de atualizar, o Setup interrompe o serviço Windows SEZPrintService.
+- Aguarda o processo SEZPrintServiceHost.exe encerrar e liberar o arquivo.
+- Se necessário, encerra somente um processo residual com esse nome, após tentar a parada normal do serviço.
+- Se o executável continuar bloqueado, cancela a atualização e informa o log; não oferece ignorar/substituir parcialmente o host.
+- O serviço é registrado e iniciado novamente depois da cópia dos arquivos.
+- Log da parada para atualização: %ProgramData%\SmartEZ\SEZ Print Service\logs\upgrade-stop.log.
+- Log do registro/inicialização: %ProgramData%\SmartEZ\SEZ Print Service\logs\service-install.log.
+
+RUNTIME EMBARCADO
+- Inclui Node.js 22.23.3 x64 e SumatraPDF 3.6.1 portáteis.
+- Os hashes SHA-256 dos pacotes oficiais são conferidos durante o build.
+- Não exige Node.js global ou download de runtime no computador.
 
 SISTEMA
 - Compatibilidade alvo: Windows 10 e Windows 11, 64 bits.
@@ -16,8 +21,7 @@ SISTEMA
 - Inicialização automática pelo Windows, sem depender de login.
 - Processo Node.js em segundo plano, supervisionado pelo host nativo C#.
 - Reinício automático em caso de encerramento inesperado.
-- Log de instalação do serviço em %ProgramData%\SmartEZ\SEZ Print Service\logs\service-install.log.
-- Logs de execução em %ProgramData%\SmartEZ\SEZ Print Service\logs.
+- Logs em %ProgramData%\SmartEZ\SEZ Print Service\logs.
 - Desinstalador remove o serviço Windows.
 
 IMPRESSÃO
@@ -30,9 +34,9 @@ IMPRESSÃO
 - A resposta positiva confirma o envio ao spooler do Windows; não é um sensor físico de saída do papel.
 
 INSTALAÇÃO
-1. Execute SEZ-Print-Service-Setup.exe como administrador.
-2. O instalador copia o Node.js e SumatraPDF já incluídos no próprio EXE.
-3. O serviço SEZ Print Service é registrado e iniciado automaticamente.
+1. Execute SEZ-Print-Service-Setup-0.4.5.exe como administrador.
+2. Se já houver uma versão anterior, o Setup vai pará-la antes de substituir o EXE.
+3. O serviço SEZ Print Service será registrado e iniciado automaticamente.
 4. No Smart EZ ERP, abra Configurações > SEZ Print Service.
 5. Conecte, atualize as impressoras e salve a impressora A4 e a impressora 80mm.
 6. Ative ou desative "Impressão automática silenciosa" conforme necessário.
@@ -45,10 +49,5 @@ REQUISITOS IMPORTANTES
 - Não é necessário Node.js global nem internet para baixar runtime durante a instalação.
 - Para verificar o estado do serviço, abra services.msc e localize SEZ Print Service.
 
-DIAGNÓSTICO
-- Falhas de registro do serviço: %ProgramData%\SmartEZ\SEZ Print Service\logs\service-install.log
-- Logs de execução: %ProgramData%\SmartEZ\SEZ Print Service\logs\AAAA-MM-DD.log
-
 BUILD
-O EXE do instalador é gerado em Windows pelo GitHub Actions do repositório SEZPrintService.
-O pipeline baixa os runtimes oficiais, confere os hashes SHA-256, inclui toda a distribuição Node.js e compila o host e instalador.
+O EXE é gerado por GitHub Actions em Windows e inclui os runtimes verificados, o host C# e o mecanismo de impressão.
