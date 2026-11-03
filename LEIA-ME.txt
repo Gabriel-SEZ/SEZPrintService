@@ -1,46 +1,49 @@
-SEZ PRINT SERVICE 0.3.0 — SERVIÇO NATIVO DO WINDOWS
-==================================================
+SEZ PRINT SERVICE 0.4.0 — IMPRESSÃO AUTOMÁTICA A4 E 80mm
+=========================================================
 
-Compatibilidade alvo: Windows 10 e Windows 11, 64 bits.
-
-COMPORTAMENTO
-- Instala SEZPrintService como serviço nativo do Windows.
-- Tipo de inicialização: Automático, executado pelo Windows durante a inicialização e antes do login do usuário.
-- Conta: LocalSystem (sem depender de uma conta interativa).
-- Processo Node.js executado oculto, sem janela de console.
-- Se o processo Node.js encerrar, o host tenta iniciá-lo novamente após 5 segundos.
-- O Gerenciador de Controle de Serviços do Windows também reinicia o host em falhas.
-- Serviço pode ser iniciado, parado e reiniciado em services.msc.
+SISTEMA
+- Compatibilidade alvo: Windows 10 e Windows 11, 64 bits.
+- Instala o SEZPrintService como serviço nativo do Windows.
+- Inicialização automática pelo Windows, sem depender de login.
+- Processo Node.js em segundo plano, supervisionado pelo host nativo C#.
+- Reinício automático em caso de encerramento inesperado.
 - Logs em %ProgramData%\SmartEZ\SEZ Print Service\logs.
-- Desinstalador remove o serviço antes de remover os arquivos.
+- Desinstalador remove o serviço Windows.
 
-IMPORTANTE SOBRE IMPRESSORAS
-Como o serviço inicia antes do login e roda como LocalSystem, as filas e drivers de impressão precisam estar instalados para o computador (todos os usuários), não apenas no perfil de um usuário. Impressoras instaladas somente por usuário podem não aparecer. Isso é necessário para manter o serviço disponível antes do login.
+IMPRESSÃO
+- Recebe documentos HTML reais do Smart EZ ERP pela rota local POST /api/print.
+- Renderiza o HTML para PDF com Microsoft Edge ou Google Chrome em modo headless.
+- Envia o PDF silenciosamente para a fila do Windows com SumatraPDF.
+- Formatos suportados: A4 e bobina térmica 80mm.
+- Mantém estilos, imagens, logos, fontes e referências relativas ao domínio Smart EZ.
+- Processa trabalhos em fila para não sobrepor documentos.
+- Retorna ao ERP identificador do trabalho, impressora, formato e erro de processamento.
+- A resposta positiva confirma o envio ao spooler do Windows; não é um sensor físico de saída do papel.
 
-INSTALAÇÃO E BUILD
-O instalador é compilado no GitHub Actions:
-1. Envie o conteúdo deste projeto para um repositório GitHub.
-2. Abra Actions > Build SEZ Print Service installer > Run workflow.
-3. Baixe o artefato SEZ-Print-Service-Setup-Windows-x64.
-4. Execute o EXE como administrador.
+SEGURANÇA
+- API vinculada somente a 127.0.0.1 na porta 32177; não exponha essa porta à rede.
+- Token aleatório gerado na inicialização e exigido nas operações de impressão.
+- CORS limitado às origens Smart EZ autorizadas.
+- Limite de 12 MB no corpo HTTP e 10 MB no HTML.
+- HTML recebido passa por limpeza de scripts, iframes, objetos e atributos de evento.
+- URLs base externas ou HTTP são rejeitadas e substituídas pela base HTTPS do Smart EZ.
 
-O workflow compila service-host\SezPrintServiceHost.exe com o compilador C# do Windows e depois compila o instalador Inno Setup.
+INSTALAÇÃO
+1. Execute SEZ-Print-Service-Setup.exe como administrador.
+2. O instalador prepara Node.js 22 LTS e baixa o SumatraPDF portátil diretamente dos sites oficiais.
+3. O serviço SEZ Print Service é registrado e iniciado automaticamente.
+4. No Smart EZ ERP, abra Configurações > SEZ Print Service.
+5. Conecte, atualize as impressoras e salve a impressora A4 e a impressora 80mm.
+6. Ative ou desative "Impressão automática silenciosa" conforme necessário.
+7. Use os botões de teste A4 e 80mm antes de iniciar os atendimentos.
 
-GERENCIAMENTO
-- Abra services.msc.
-- Localize “SEZ Print Service”.
-- Use Iniciar, Parar ou Reiniciar.
-- Tipo de inicialização: Automático.
+REQUISITOS IMPORTANTES
+- Primeira instalação requer conexão à internet para baixar Node.js e SumatraPDF.
+- O computador precisa ter Microsoft Edge ou Google Chrome instalado em nível de máquina.
+- Como o serviço roda como LocalSystem antes do login, filas e drivers precisam estar instalados para o computador/todos os usuários. Impressoras adicionadas somente ao perfil pessoal podem não aparecer.
+- Instale drivers oficiais da impressora e confirme o tamanho de papel A4/80mm no driver do Windows.
+- Para verificar o estado do serviço, abra services.msc e localize SEZ Print Service.
 
-TESTE NO ERP
-1. Abra https://smartez.com.br.
-2. Acesse Configurações > SEZ Print Service.
-3. Conecte e atualize a lista de impressoras.
-4. Escolha impressoras padrão A4 e 80mm e envie um teste.
-
-LIMITAÇÕES
-- Esta versão do motor lista impressoras Windows e envia teste textual. Não implementa impressão de documentos reais (OS, contratos, DANFE, recibos) por si só.
-- O instalador precisa ser compilado pelo workflow para gerar o EXE 0.3.0. O EXE anterior não vira serviço nativo apenas pela atualização dos scripts.
-- A primeira instalação do Node.js pode exigir internet.
-- O instalador não remove Node.js na desinstalação, pois ele pode ser utilizado por outros programas.
-- Não exponha a porta 32177 à rede; o servidor deve continuar restrito a 127.0.0.1.
+BUILD
+O EXE do instalador é gerado em Windows pelo GitHub Actions do repositório SEZPrintService.
+O pipeline compila o host C#, valida scripts e testes Node.js e gera o Inno Setup.
